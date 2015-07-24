@@ -4,11 +4,14 @@ using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Windows.Forms;
-using SkypeCustomizer.Skype;
+using SkypeCustomizer;
+using SkypeCustomizer.EventArgs;
 using SKYPE4COMLib;
 
 namespace Skype_Customizer
@@ -19,32 +22,28 @@ namespace Skype_Customizer
 		[DllImport("user32.dll")]
 		static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int count);
 
+		protected SkypeConfig SkypeConfig;
 		protected Config Config;
-
-		private readonly Skype SkypeInstance;
-
-		protected bool Online { get;set; }
 		
 		public Main()
 		{
 			InitializeComponent();
-			SkypeInstance = new Skype();
 
-			var config = SkypeCustomizer.Config.Instance();
+			HideConnecting();
 
-			if (config.OriginalFullName == null)
-			{
-				config.OriginalFullName = SkypeInstance.CurrentUserProfile.FullName;
-			}
+			Config = Config.Instance();
 
 			Closing += delegate
 			{
-				// Reset name
-				if (SkypeInstance.Client.IsRunning)
+				ShowConnecting();
+				var skype = new SkypeInstance();
+				skype.InstanceFound += delegate(object sender, SkypeInstanceEventArgs args)
 				{
-					SkypeInstance.CurrentUserProfile.FullName = config.OriginalFullName;
-				}
-				config.Save();
+					HideConnecting();
+					args.SkypeInstance.CurrentUserProfile.FullName = Config.OriginalFullName;
+					
+				};
+				Config.Save();
 			};
 
 			Resize += delegate(object sender, EventArgs args)
@@ -65,42 +64,6 @@ namespace Skype_Customizer
 			};
 
 			aboutText.Text = "Version: " + System.Windows.Forms.Application.ProductVersion + System.Environment.NewLine + Environment.NewLine + aboutText.Text;
-		}
-
-		protected void CheckOnline()
-		{
-			var running = false;
-			foreach (var process in Process.GetProcesses())
-			{
-				try
-				{
-					if (process.Modules.Count > 0 && process.Modules[0].FileName.ToLower().Contains("skype.exe"))
-					{
-						running = true;
-						break;
-					}
-				}
-				catch (Exception)
-				{
-					
-				}
-			}
-
-			if(running) {
-				Online = (SkypeInstance.Client.IsRunning && SkypeInstance.CurrentUserHandle != null);
-			}
-
-			if (!running || !Online)
-			{
-				if (
-					MessageBox.Show(
-						"Failed communicate with Skype.\nIs Skype open and are you sure you are signed in?\n\nClick OK to try again or Cancel to quit.", "Error", MessageBoxButtons.OKCancel) ==
-					DialogResult.Cancel)
-				{
-					Environment.Exit(0);
-				}
-				CheckOnline();
-			}
 		}
 
 		protected Song GetSongInfo()
@@ -143,52 +106,125 @@ namespace Skype_Customizer
 
 		private void refresh_Tick(object sender, EventArgs e)
 		{
-			var song = GetSongInfo();
-
-			statusExampleLbl.Text = song.ToString(SkypeCustomizer.Config.Instance().StatusFormat);
-
-			var status = SkypeCustomizer.Config.Instance().OriginalFullName;
-
-			if (SkypeCustomizer.Config.Instance().ShowSpotifyMusic && song.Title != null && song.Author != null)
-			{
-				status = SkypeCustomizer.Config.Instance()
-					.StatusFormat.Replace("{status}", SkypeCustomizer.Config.Instance().OriginalFullName);
-			}
-
-			SkypeInstance.CurrentUserProfile.FullName = song.ToString(status);
+			refresh.Stop();
+			var skype = new SkypeInstance();
+			skype.Error += SkypeOnError;
+			skype.InstanceFound += SetForm;
 		}
 
 		private void saveBtn_Click(object sender, EventArgs e)
 		{
-			CheckOnline();
+			var skype = new SkypeInstance();
+			skype.Error += SkypeOnError;
+			skype.InstanceFound += SaveSettings;
+		}
 
+		protected void SaveSettings(object sender, SkypeInstanceEventArgs args)
+		{
+			HideConnecting();
 			// Save Skype configuration
-			Config.DisableAds = disableAds.Checked;
-			Config.Save();
+			SkypeConfig.DisableAds = disableAds.Checked;
+			SkypeConfig.Save();
 
 			// Reset username if spotify option is disabled
 			if (!showSpotify.Checked)
 			{
-				SkypeInstance.CurrentUserProfile.FullName = SkypeCustomizer.Config.Instance().OriginalFullName;
+				args.SkypeInstance.CurrentUserProfile.FullName = Config.OriginalFullName;
 			}
 
 			// Save app configuration
-			SkypeCustomizer.Config.Instance().ShowSpotifyMusic = showSpotify.Checked;
-			SkypeCustomizer.Config.Instance().StatusFormat = statusFormat.Text;
-			SkypeCustomizer.Config.Instance().Save();
+			Config.ShowSpotifyMusic = showSpotify.Checked;
+			Config.StatusFormat = statusFormat.Text;
+			Config.Save();
+		}
+
+		protected void ShowConnecting()
+		{
+			if (InvokeRequired)
+			{
+				Invoke(new Action(ShowConnecting));
+				return;
+			}
+			loadingPanel.BringToFront();
+			loadingPanel.Visible = true;
+		}
+
+		protected void HideConnecting()
+		{
+			if (InvokeRequired)
+			{
+				Invoke(new Action(HideConnecting));
+				return;
+			}
+
+			loadingPanel.Visible = false;
+		}
+
+		protected void SetForm(object sender, SkypeInstanceEventArgs args)
+		{
+			if (InvokeRequired)
+			{
+				Invoke(new Action<object, SkypeInstanceEventArgs>(SetForm), new object[] { sender, args });
+				return;
+			}
+
+			if (Config.OriginalFullName == null)
+			{
+				Config.OriginalFullName = args.SkypeInstance.CurrentUserProfile.FullName;
+			}
+
+			SkypeConfig = new SkypeConfig(args.SkypeInstance.CurrentUserHandle);
+			disableAds.Checked = !SkypeConfig.DisableAds;
+
+			showSpotify.Checked = Config.ShowSpotifyMusic;
+			statusFormat.Text = Config.StatusFormat;
+
+			var song = GetSongInfo();
+
+			statusExampleLbl.Text = song.ToString(Config.StatusFormat);
+
+			var status = Config.OriginalFullName;
+
+			if (Config.ShowSpotifyMusic && song.Title != null && song.Author != null)
+			{
+				status = Config.StatusFormat.Replace("{status}", Config.OriginalFullName);
+			}
+
+			args.SkypeInstance.CurrentUserProfile.FullName = song.ToString(status);
+
+			if (!refresh.Enabled)
+			{
+				refresh.Start();
+			}
+
+			HideConnecting();
 		}
 
 		private void Main_Load(object sender, EventArgs e)
 		{
-			CheckOnline();
+			ShowConnecting();
+			var skype = new SkypeInstance();
+			skype.Error += SkypeOnError;
+			skype.InstanceFound += SetForm;
+		}
 
-			Config = new Config(SkypeInstance.CurrentUserHandle);
-			disableAds.Checked = !Config.DisableAds;
+		private void SkypeOnError(object sender, ErrorEventArgs errorEventArgs)
+		{
+			if (InvokeRequired)
+			{
+				Invoke(new Action<object, ErrorEventArgs>(SkypeOnError), new object[] {sender, errorEventArgs});
+				return;
+			}
 
-			showSpotify.Checked = SkypeCustomizer.Config.Instance().ShowSpotifyMusic;
-			statusFormat.Text = SkypeCustomizer.Config.Instance().StatusFormat;
+			if (
+				MessageBox.Show(this, errorEventArgs.GetException().Message, "Error", MessageBoxButtons.OKCancel, MessageBoxIcon.Error) ==
+				DialogResult.Cancel)
+			{
+				Environment.Exit(0);
+			}
 
-			refresh.Start();
+			// Try again
+			((SkypeInstance)sender).FindInstance();
 		}
 
 		private void showToolStripMenuItem_Click(object sender, EventArgs e)

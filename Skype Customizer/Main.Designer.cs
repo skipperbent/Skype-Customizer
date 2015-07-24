@@ -30,8 +30,9 @@
 		{
 			this.components = new System.ComponentModel.Container();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Main));
-			this.tabControl1 = new System.Windows.Forms.TabControl();
+			this.mainPanel = new System.Windows.Forms.TabControl();
 			this.statusTab = new System.Windows.Forms.TabPage();
+			this.label6 = new System.Windows.Forms.Label();
 			this.label5 = new System.Windows.Forms.Label();
 			this.label3 = new System.Windows.Forms.Label();
 			this.label2 = new System.Windows.Forms.Label();
@@ -51,27 +52,29 @@
 			this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.showToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.label6 = new System.Windows.Forms.Label();
 			this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-			this.tabControl1.SuspendLayout();
+			this.loadingPanel = new System.Windows.Forms.Panel();
+			this.label4 = new System.Windows.Forms.Label();
+			this.mainPanel.SuspendLayout();
 			this.statusTab.SuspendLayout();
 			this.adsTab.SuspendLayout();
 			this.aboutTab.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
 			this.contextMenuStrip1.SuspendLayout();
+			this.loadingPanel.SuspendLayout();
 			this.SuspendLayout();
 			// 
-			// tabControl1
+			// mainPanel
 			// 
-			this.tabControl1.Controls.Add(this.statusTab);
-			this.tabControl1.Controls.Add(this.adsTab);
-			this.tabControl1.Controls.Add(this.aboutTab);
-			this.tabControl1.Location = new System.Drawing.Point(6, 5);
-			this.tabControl1.Name = "tabControl1";
-			this.tabControl1.SelectedIndex = 0;
-			this.tabControl1.Size = new System.Drawing.Size(372, 233);
-			this.tabControl1.TabIndex = 1;
+			this.mainPanel.Controls.Add(this.statusTab);
+			this.mainPanel.Controls.Add(this.adsTab);
+			this.mainPanel.Controls.Add(this.aboutTab);
+			this.mainPanel.Location = new System.Drawing.Point(6, 5);
+			this.mainPanel.Name = "mainPanel";
+			this.mainPanel.SelectedIndex = 0;
+			this.mainPanel.Size = new System.Drawing.Size(372, 233);
+			this.mainPanel.TabIndex = 1;
 			// 
 			// statusTab
 			// 
@@ -90,6 +93,16 @@
 			this.statusTab.TabIndex = 0;
 			this.statusTab.Text = "Status";
 			this.statusTab.UseVisualStyleBackColor = true;
+			// 
+			// label6
+			// 
+			this.label6.AutoSize = true;
+			this.label6.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label6.Location = new System.Drawing.Point(12, 115);
+			this.label6.Name = "label6";
+			this.label6.Size = new System.Drawing.Size(96, 13);
+			this.label6.TabIndex = 11;
+			this.label6.Text = "Status example";
 			// 
 			// label5
 			// 
@@ -259,31 +272,40 @@
             this.showToolStripMenuItem,
             this.exitToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(153, 70);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(104, 48);
 			// 
 			// showToolStripMenuItem
 			// 
 			this.showToolStripMenuItem.Name = "showToolStripMenuItem";
-			this.showToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.showToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
 			this.showToolStripMenuItem.Text = "Show";
 			this.showToolStripMenuItem.Click += new System.EventHandler(this.showToolStripMenuItem_Click);
-			// 
-			// label6
-			// 
-			this.label6.AutoSize = true;
-			this.label6.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label6.Location = new System.Drawing.Point(12, 115);
-			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(96, 13);
-			this.label6.TabIndex = 11;
-			this.label6.Text = "Status example";
 			// 
 			// exitToolStripMenuItem
 			// 
 			this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-			this.exitToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+			this.exitToolStripMenuItem.Size = new System.Drawing.Size(103, 22);
 			this.exitToolStripMenuItem.Text = "Exit";
 			this.exitToolStripMenuItem.Click += new System.EventHandler(this.exitToolStripMenuItem_Click);
+			// 
+			// loadingPanel
+			// 
+			this.loadingPanel.Controls.Add(this.label4);
+			this.loadingPanel.Location = new System.Drawing.Point(6, 5);
+			this.loadingPanel.Name = "loadingPanel";
+			this.loadingPanel.Size = new System.Drawing.Size(372, 261);
+			this.loadingPanel.TabIndex = 3;
+			this.loadingPanel.Visible = false;
+			// 
+			// label4
+			// 
+			this.label4.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label4.Location = new System.Drawing.Point(0, 112);
+			this.label4.Name = "label4";
+			this.label4.Size = new System.Drawing.Size(371, 23);
+			this.label4.TabIndex = 0;
+			this.label4.Text = "Connecting to Skype...";
+			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
 			// 
 			// Main
 			// 
@@ -292,7 +314,8 @@
 			this.BackColor = System.Drawing.Color.White;
 			this.ClientSize = new System.Drawing.Size(384, 273);
 			this.Controls.Add(this.saveBtn);
-			this.Controls.Add(this.tabControl1);
+			this.Controls.Add(this.mainPanel);
+			this.Controls.Add(this.loadingPanel);
 			this.Font = new System.Drawing.Font("Tahoma", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -301,7 +324,7 @@
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Skype Customizer";
 			this.Load += new System.EventHandler(this.Main_Load);
-			this.tabControl1.ResumeLayout(false);
+			this.mainPanel.ResumeLayout(false);
 			this.statusTab.ResumeLayout(false);
 			this.statusTab.PerformLayout();
 			this.adsTab.ResumeLayout(false);
@@ -311,13 +334,14 @@
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
 			this.contextMenuStrip1.ResumeLayout(false);
+			this.loadingPanel.ResumeLayout(false);
 			this.ResumeLayout(false);
 
 		}
 
 		#endregion
 
-		private System.Windows.Forms.TabControl tabControl1;
+		private System.Windows.Forms.TabControl mainPanel;
 		private System.Windows.Forms.TabPage statusTab;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.TextBox statusFormat;
@@ -340,6 +364,8 @@
 		private System.Windows.Forms.ToolStripMenuItem showToolStripMenuItem;
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
+		private System.Windows.Forms.Panel loadingPanel;
+		private System.Windows.Forms.Label label4;
 
 	}
 }

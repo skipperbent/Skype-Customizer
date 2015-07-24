@@ -7,15 +7,15 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 
-namespace SkypeCustomizer.Skype
+namespace SkypeCustomizer
 {
-	public class Config
+	public class SkypeConfig
 	{
 		public bool DisableAds { get; set; }
 		public string ConfigFile { get; set; }
 		protected string ConfigText { get; set; }
 
-		public Config(string username)
+		public SkypeConfig(string username)
 		{
 			var config = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + String.Format(@"\Skype\{0}\config.xml", username);
 			if (!File.Exists(config))
@@ -74,10 +74,7 @@ namespace SkypeCustomizer.Skype
 				// Add blocked sites if they exists
 				if (DisableAds)
 				{
-					foreach (var site in sitesToBlock)
-					{
-						hosts.Add(site);
-					}
+					hosts.AddRange(sitesToBlock.Select(site => "127.0.0.1	" + site + "	# Disable Skype ads"));
 				}
 
 				File.WriteAllLines(hostFile, hosts.Where(s => !String.IsNullOrEmpty(s)).ToArray());

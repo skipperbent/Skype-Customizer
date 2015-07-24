@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Config.cs" />
+    <Compile Include="EventArgs\SkypeInstanceEventArgs.cs" />
     <Compile Include="Main.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -79,8 +80,8 @@
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SingleInstanceController.cs" />
-    <Compile Include="Skype\Config.cs" />
-    <Compile Include="Skype\Current.cs" />
+    <Compile Include="SkypeConfig.cs" />
+    <Compile Include="SkypeInstance.cs" />
     <Compile Include="Song.cs" />
     <EmbeddedResource Include="Main.resx">
       <DependentUpon>Main.cs</DependentUpon>
