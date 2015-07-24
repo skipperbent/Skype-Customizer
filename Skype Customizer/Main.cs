@@ -34,7 +34,7 @@ namespace Skype_Customizer
 
 			_skypeInstance = new SkypeInstance();
 			_skypeInstance.Error += SkypeOnError;
-			_skypeInstance.InstanceFound += SetForm;
+			_skypeInstance.InstanceFound += OnRefresh;
 
 			Config = Config.Instance();
 
@@ -114,7 +114,7 @@ namespace Skype_Customizer
 		{
 			try
 			{
-				SetForm(this, new SkypeInstanceEventArgs()
+				OnRefresh(this, new SkypeInstanceEventArgs()
 				{
 					Online = _skypeInstance.Online,
 					SkypeInstance = _skypeInstance.Skype
@@ -176,31 +176,17 @@ namespace Skype_Customizer
 			loadingPanel.Visible = false;
 		}
 
-		protected void SetForm(object sender, SkypeInstanceEventArgs args)
+		protected void OnRefresh(object sender, SkypeInstanceEventArgs args)
 		{
 			if (InvokeRequired)
 			{
-				Invoke(new Action<object, SkypeInstanceEventArgs>(SetForm), new object[] { sender, args });
+				Invoke(new Action<object, SkypeInstanceEventArgs>(OnRefresh), new object[] { sender, args });
 				return;
 			}
 
-			if (Config.OriginalFullName == null)
-			{
-				Config.OriginalFullName = args.SkypeInstance.CurrentUserProfile.FullName;
-			}
-
-			if (SkypeConfig == null)
-			{
-				SkypeConfig = new SkypeConfig(args.SkypeInstance.CurrentUserHandle);
-			}
-
-			disableAds.Checked = !SkypeConfig.DisableAds;
-			showSpotify.Checked = Config.ShowSpotifyMusic;
-			statusFormat.Text = Config.StatusFormat;
-
 			var song = GetSongInfo();
 
-			statusExampleLbl.Text = song.ToString(Config.StatusFormat);
+			statusExampleLbl.Text = song.ToString(statusFormat.Text);
 
 			var status = Config.OriginalFullName;
 
@@ -218,14 +204,42 @@ namespace Skype_Customizer
 			{
 				refresh.Start();
 			}
-
-			HideConnecting();
 		}
 
 		private void Main_Load(object sender, EventArgs e)
 		{
 			ShowConnecting();
+
+			var skype = new SkypeInstance();
+			skype.InstanceFound += SetForm;
+			skype.Error += SkypeOnError;
+			skype.FindInstance();
+		}
+
+		private void SetForm(object sender, SkypeInstanceEventArgs args)
+		{
+			if (InvokeRequired)
+			{
+				Invoke(new Action<object, SkypeInstanceEventArgs>(SetForm), new object[] { sender, args });
+				return;
+			}
+
+			if (Config.OriginalFullName == null)
+			{
+				Config.OriginalFullName = args.SkypeInstance.CurrentUserProfile.FullName;
+			}
+
+			SkypeConfig = new SkypeConfig(args.SkypeInstance.CurrentUserHandle);
+
+			disableAds.Checked = !SkypeConfig.DisableAds;
+			showSpotify.Checked = Config.ShowSpotifyMusic;
+			statusFormat.Text = Config.StatusFormat;
+
 			refresh.Start();
+
+			HideConnecting();
+
+			OnRefresh(sender, args);
 		}
 
 		private void SkypeOnError(object sender, ErrorEventArgs errorEventArgs)
