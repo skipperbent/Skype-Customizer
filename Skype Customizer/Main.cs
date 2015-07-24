@@ -24,6 +24,7 @@ namespace Skype_Customizer
 
 		protected SkypeConfig SkypeConfig;
 		protected Config Config;
+		private SkypeInstance _skypeInstance;
 		
 		public Main()
 		{
@@ -31,18 +32,22 @@ namespace Skype_Customizer
 
 			HideConnecting();
 
+			_skypeInstance = new SkypeInstance();
+			_skypeInstance.Error += SkypeOnError;
+			_skypeInstance.InstanceFound += SetForm;
+
 			Config = Config.Instance();
 
 			Closing += delegate
 			{
-				ShowConnecting();
-				var skype = new SkypeInstance();
-				skype.InstanceFound += delegate(object sender, SkypeInstanceEventArgs args)
+				try
 				{
-					HideConnecting();
-					args.SkypeInstance.CurrentUserProfile.FullName = Config.OriginalFullName;
-					
-				};
+					_skypeInstance.Skype.CurrentUserProfile.FullName = Config.OriginalFullName;
+				}
+				catch (Exception)
+				{
+					// Ignore any errors here
+				}
 				Config.Save();
 			};
 
@@ -69,12 +74,14 @@ namespace Skype_Customizer
 		protected Song GetSongInfo()
 		{
 			var song = new Song();
-			var processes = Process.GetProcesses();
+			//var processes = Process.GetProcesses();
 			var handle = IntPtr.Zero;
 			string processTitle = null;
+
+			var processes = Process.GetProcessesByName("spotify");
 			foreach (var process in processes)
 			{
-				if (process.ProcessName.ToLower().Contains("spotify") && process.MainWindowHandle != IntPtr.Zero)
+				if (process.MainWindowHandle != IntPtr.Zero)
 				{
 					handle = process.MainWindowHandle;
 					break;
@@ -91,7 +98,6 @@ namespace Skype_Customizer
 					processTitle = sb.ToString();
 				}
 
-
 				if (processTitle != null && processTitle.Contains("-") && !processTitle.ToLower().Contains("spotify"))
 				{
 					var info = processTitle.Split('-');
@@ -106,10 +112,19 @@ namespace Skype_Customizer
 
 		private void refresh_Tick(object sender, EventArgs e)
 		{
-			refresh.Stop();
-			var skype = new SkypeInstance();
-			skype.Error += SkypeOnError;
-			skype.InstanceFound += SetForm;
+			try
+			{
+				SetForm(this, new SkypeInstanceEventArgs()
+				{
+					Online = _skypeInstance.Online,
+					SkypeInstance = _skypeInstance.Skype
+				});
+			}
+			catch (Exception)
+			{
+				refresh.Stop();
+				_skypeInstance.FindInstance();
+			}
 		}
 
 		private void saveBtn_Click(object sender, EventArgs e)
@@ -117,6 +132,7 @@ namespace Skype_Customizer
 			var skype = new SkypeInstance();
 			skype.Error += SkypeOnError;
 			skype.InstanceFound += SaveSettings;
+			skype.FindInstance();
 		}
 
 		protected void SaveSettings(object sender, SkypeInstanceEventArgs args)
@@ -173,9 +189,12 @@ namespace Skype_Customizer
 				Config.OriginalFullName = args.SkypeInstance.CurrentUserProfile.FullName;
 			}
 
-			SkypeConfig = new SkypeConfig(args.SkypeInstance.CurrentUserHandle);
-			disableAds.Checked = !SkypeConfig.DisableAds;
+			if (SkypeConfig == null)
+			{
+				SkypeConfig = new SkypeConfig(args.SkypeInstance.CurrentUserHandle);
+			}
 
+			disableAds.Checked = !SkypeConfig.DisableAds;
 			showSpotify.Checked = Config.ShowSpotifyMusic;
 			statusFormat.Text = Config.StatusFormat;
 
@@ -190,7 +209,10 @@ namespace Skype_Customizer
 				status = Config.StatusFormat.Replace("{status}", Config.OriginalFullName);
 			}
 
-			args.SkypeInstance.CurrentUserProfile.FullName = song.ToString(status);
+			if (args.SkypeInstance.CurrentUserProfile.FullName != song.ToString(status))
+			{
+				args.SkypeInstance.CurrentUserProfile.FullName = song.ToString(status);
+			}
 
 			if (!refresh.Enabled)
 			{
@@ -203,13 +225,16 @@ namespace Skype_Customizer
 		private void Main_Load(object sender, EventArgs e)
 		{
 			ShowConnecting();
-			var skype = new SkypeInstance();
-			skype.Error += SkypeOnError;
-			skype.InstanceFound += SetForm;
+			refresh.Start();
 		}
 
 		private void SkypeOnError(object sender, ErrorEventArgs errorEventArgs)
 		{
+			if (refresh != null && refresh.Enabled)
+			{
+				refresh.Stop();
+			}
+
 			if (InvokeRequired)
 			{
 				Invoke(new Action<object, ErrorEventArgs>(SkypeOnError), new object[] {sender, errorEventArgs});
@@ -224,7 +249,7 @@ namespace Skype_Customizer
 			}
 
 			// Try again
-			((SkypeInstance)sender).FindInstance();
+			_skypeInstance.FindInstance();
 		}
 
 		private void showToolStripMenuItem_Click(object sender, EventArgs e)

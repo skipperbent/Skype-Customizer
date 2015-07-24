@@ -256,7 +256,7 @@
 			// 
 			// refresh
 			// 
-			this.refresh.Interval = 1000;
+			this.refresh.Interval = 5000;
 			this.refresh.Tick += new System.EventHandler(this.refresh_Tick);
 			// 
 			// notifyIcon1
