@@ -1,0 +1,11 @@
+D:\Visual Studio\Skype Customizer\Skype Customizer\bin\x86\Release\Skype Customizer.exe.config
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Interop.SKYPE4COMLib.dll
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Skype Customizer.csproj.ResolveComReference.cache
+D:\Visual Studio\Skype Customizer\Skype Customizer\bin\x86\Release\Skype Customizer.exe
+D:\Visual Studio\Skype Customizer\Skype Customizer\bin\x86\Release\Skype Customizer.pdb
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Skype_Customizer.Main.resources
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\SkypeCustomizer.Properties.Resources.resources
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Skype Customizer.csproj.GenerateResource.Cache
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Skype Customizer.exe
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Skype Customizer.pdb
+D:\Visual Studio\Skype Customizer\Skype Customizer\obj\x86\Release\Skype Customizer.csprojResolveAssemblyReference.cache
